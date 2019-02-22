@@ -51,6 +51,7 @@ boost::mutex g_image_mutex;
 std::string g_window_name;
 bool g_do_dynamic_scaling;
 int g_colormap;
+bool g_do_mirror;
 
 void reconfigureCb(image_view::ImageViewConfig &config, uint32_t level)
 {
@@ -70,6 +71,12 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     options.colormap = g_colormap;
     g_last_image = cv_bridge::cvtColorForDisplay(cv_bridge::toCvShare(msg), "",
                                                  options)->image;
+    if (g_do_mirror)
+    {
+      cv::Mat image_mirror;
+      cv::flip(g_last_image, image_mirror, 1);
+      g_last_image = image_mirror;
+    }
   } catch (cv_bridge::Exception& e) {
     ROS_ERROR_THROTTLE(30, "Unable to convert '%s' image for display: '%s'",
                        msg->encoding.c_str(), e.what());
@@ -134,6 +141,9 @@ int main(int argc, char **argv)
   local_nh.param("autosize", autosize, false);
   cv::namedWindow(g_window_name, autosize ? (CV_WINDOW_AUTOSIZE | CV_WINDOW_KEEPRATIO | CV_GUI_EXPANDED) : 0);
   cv::setMouseCallback(g_window_name, &mouseCb);
+
+  // Handle mirror
+  local_nh.param("mirror", g_do_mirror, true);
 
   // Start the OpenCV window thread so we don't have to waitKey() somewhere
   cv::startWindowThread();
