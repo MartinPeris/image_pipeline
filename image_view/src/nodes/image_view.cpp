@@ -138,8 +138,12 @@ int main(int argc, char **argv)
 
   // Handle window size
   bool autosize;
-  local_nh.param("autosize", autosize, false);
-  cv::namedWindow(g_window_name, autosize ? (CV_WINDOW_AUTOSIZE | CV_WINDOW_KEEPRATIO | CV_GUI_EXPANDED) : 0);
+  local_nh.param("autosize", autosize, true);
+  cv::namedWindow(g_window_name, autosize ? (cv::WINDOW_NORMAL) : 0);
+  if (autosize)
+  {
+    cv::setWindowProperty(g_window_name, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
+  }
   cv::setMouseCallback(g_window_name, &mouseCb);
 
   // Handle mirror
